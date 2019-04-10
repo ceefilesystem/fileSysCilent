@@ -20,7 +20,7 @@ private:
 	int port;
 
 	static void on_thread_cb(void*);
-	static void on_connect_cb(uv_connect_t* req, int status);
+	static void on_connect_cb(uv_connect_t*, int);
 
 public:
 	uvClient();
@@ -33,5 +33,6 @@ public:
 	writeCallBack getWriteCallBack();
 
 	void connectIpv4(const char* ip, int port);
+	int sendData(void* in, int len);
 };
 

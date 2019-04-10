@@ -72,10 +72,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)fileSysCilent\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\Tmp</IntDir>
+    <IncludePath>Y:\Work\C++\OpenLib\libuv-1.x\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Users\lenovo\Desktop\libuv-1.x\Build\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)fileSysCilent\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\Tmp</IntDir>
+    <IncludePath>Y:\Work\C++\OpenLib\libuv-1.x\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Users\lenovo\Desktop\libuv-1.x\Build\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -123,13 +127,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="fileService.h" />
-    <ClInclude Include="httpClient.h" />
     <ClInclude Include="uvClient.h" />
+    <ClInclude Include="uvTask.h" />
     <ClInclude Include="wsClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fileService.cpp" />
-    <ClCompile Include="httpClient.cpp" />
+    <ClCompile Include="Main.cpp" />
     <ClCompile Include="uvClient.cpp" />
     <ClCompile Include="wsClient.cpp" />
   </ItemGroup>

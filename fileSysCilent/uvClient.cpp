@@ -1,6 +1,11 @@
 #include "uvClient.h"
 #include <iostream>
 
+typedef struct write_req_t {
+	uv_write_t req;
+	uv_buf_t buf;
+} write_req_t;
+
 /* tcp callbacks */
 static void on_close_cb(uv_handle_t *);
 static void on_shutdown_cb(uv_shutdown_t *, int);
@@ -50,20 +55,50 @@ static void on_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 		return;
 	}
 
-	int ret = 0;
 	if (nread > 0) {
-		
+		int ret = 0;
+
+		uvClient* uc = (uvClient*)(handle->data);
+		readCallBack callBacke = uc->getReadCallBack();
+		ret = callBacke(buf->base, buf->len);
 	}
 
 	free(buf->base);
 	return;
 }
 
-void uvClient::on_connect_cb(uv_connect_t* req, int status)
+static void on_write_cb(uv_write_t* req, int status)
+{
+	write_req_t* wr;
+
+	/* Free the read/write buffer and the request */
+	wr = (write_req_t*)req;
+	free(wr->buf.base);
+	free(wr);
+
+	if (status == 0)
+		return;
+
+	fprintf(stderr, "uv_write error: %s - %s\n",
+		uv_err_name(status), uv_strerror(status));
+}
+
+void uvClient::on_connect_cb(uv_connect_t* conn, int status)
 {
 	int r;
-	r = uv_read_start(req->handle, on_alloc_cb, on_read_cb);
-	ASSERT(r == 0);
+	uvClient* uc = (uvClient*)(conn->data);
+
+	r = uv_tcp_init(uc->loop, &uc->tcpConn);
+	if (r) {
+		throw ("Socket creation error");
+		return;
+	}
+
+	r = uv_read_start(conn->handle, on_alloc_cb, on_read_cb);
+	if (r) {
+		throw ("read error");
+		return;
+	}
 
 	return;
 }
@@ -79,12 +114,6 @@ void uvClient::on_thread_cb(void * arg)
 
 	ASSERT(0 == uv_ip4_addr(uc->ip, uc->port, &addr));
 
-	r = uv_tcp_init(uc->loop, &uc->tcpConn);
-	if (r) {
-		throw ("Socket creation error");
-		return;
-	}
-
 	r = uv_tcp_connect(&uc->connectReq, &uc->tcpConn, (const struct sockaddr*) &addr, on_connect_cb);
 	if (r == UV_ENETUNREACH)
 		throw ("Network unreachable.");
@@ -99,6 +128,7 @@ uvClient::uvClient()
 	this->loop = uv_default_loop();
 	const char* ip = nullptr;
 	this->connectReq.data = this;
+	this->connectReq.handle->data = this;
 }
 
 
@@ -106,6 +136,26 @@ uvClient::~uvClient()
 {
 	if (this->loop)
 		uv_loop_close(loop);
+}
+
+void uvClient::setReadCallBack(readCallBack rCallBack)
+{
+	this->rCallBack = rCallBack;
+}
+
+void uvClient::setWriteCallBack(writeCallBack wCallBack)
+{
+	this->wCallBack = wCallBack;
+}
+
+readCallBack uvClient::getReadCallBack()
+{
+	return this->rCallBack;
+}
+
+writeCallBack uvClient::getWriteCallBack()
+{
+	return this->wCallBack;
 }
 
 void uvClient::connectIpv4(const char* ip, int port)
@@ -119,4 +169,20 @@ void uvClient::connectIpv4(const char* ip, int port)
 		throw ("uv_thread_create() error");
 		return;
 	}
+}
+
+int uvClient::sendData(void * in, int len)
+{
+	write_req_t* wr = (write_req_t*)malloc(sizeof *wr);
+
+	ASSERT(wr != NULL);
+	wr->buf = uv_buf_init((char*)in, len);
+
+	if (uv_write(&wr->req, (uv_stream_t*)&tcpConn, 
+		&wr->buf, 1, on_write_cb)) {
+		throw ("uv_write failed");
+		return 1;
+	}
+
+	return 0;
 }

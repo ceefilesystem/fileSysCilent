@@ -24,7 +24,7 @@
     <ClInclude Include="wsClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="httpClient.h">
+    <ClInclude Include="uvTask.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClCompile Include="wsClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="httpClient.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
