@@ -1,7 +1,9 @@
 #include "fileService.h"
 
-FSByTcp::FSByTcp()
+FSByTcp::FSByTcp(std::string serverIp, int serverPort)
 {
+	this->serverIp = serverIp;
+	this->serverPort = serverPort;
 }
 
 FSByTcp::~FSByTcp()
@@ -32,40 +34,10 @@ void FSByTcp::serviceDestroy()
 {
 }
 
-FSByHttp::FSByHttp()
+FSByWebSocket::FSByWebSocket(std::string serverIp, int serverPort)
 {
-}
-
-FSByHttp::~FSByHttp()
-{
-}
-
-int FSByHttp::connectService()
-{
-	return 0;
-}
-
-int FSByHttp::recvData(char ** buf, int * len, int flags)
-{
-	return 0;
-}
-
-int FSByHttp::sendData(const char * buf, int len, int flags)
-{
-	return 0;
-}
-
-int FSByHttp::serviceInit()
-{
-	return 0;
-}
-
-void FSByHttp::serviceDestroy()
-{
-}
-
-FSByWebSocket::FSByWebSocket()
-{
+	this->serverIp = serverIp;
+	this->serverPort = serverPort;
 }
 
 FSByWebSocket::~FSByWebSocket()

@@ -13,7 +13,6 @@ class fileService
 
 class uvClient;
 class wsClient;
-class httpClient;
 
 //////////////////////////tcp //////////////////////////
 class FSByTcp : public fileService
@@ -25,29 +24,8 @@ private:
 	uvClient* uc;
 
 public:
-	FSByTcp();
+	FSByTcp(std::string serverIp, int serverPort);
 	virtual ~FSByTcp();
-
-	virtual int connectService();
-	virtual int recvData(char **buf, int *len, int flags);
-	virtual int sendData(const char* buf, int len, int flags);
-protected:
-	virtual int serviceInit();
-	virtual void serviceDestroy();
-};
-
-//////////////////////////http //////////////////////////
-class FSByHttp : public fileService
-{
-private:
-	std::string serverIp;
-	int serverPort;
-
-	httpClient* hc;
-
-public:
-	FSByHttp();
-	virtual ~FSByHttp();
 
 	virtual int connectService();
 	virtual int recvData(char **buf, int *len, int flags);
@@ -67,7 +45,7 @@ private:
 	wsClient* wc;
 
 public:
-	FSByWebSocket();
+	FSByWebSocket(std::string serverIp, int serverPort);
 	virtual ~FSByWebSocket();
 
 	virtual int startService();
