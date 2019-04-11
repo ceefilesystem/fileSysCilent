@@ -1,4 +1,6 @@
 #include "fileService.h"
+#include "uvClient.h"
+#include "wsClient.h"
 
 FSByTcp::FSByTcp(std::string serverIp, int serverPort)
 {
@@ -8,30 +10,36 @@ FSByTcp::FSByTcp(std::string serverIp, int serverPort)
 
 FSByTcp::~FSByTcp()
 {
+	serviceDestroy();
 }
 
-int FSByTcp::connectService()
+void FSByTcp::serviceInit()
 {
-	return 0;
-}
-
-int FSByTcp::recvData(char ** buf, int * len, int flags)
-{
-	return 0;
-}
-
-int FSByTcp::sendData(const char * buf, int len, int flags)
-{
-	return 0;
-}
-
-int FSByTcp::serviceInit()
-{
-	return 0;
+	this->uc = new uvClient();
+	return;
 }
 
 void FSByTcp::serviceDestroy()
 {
+	if (uc)
+		delete uc;
+}
+
+void FSByTcp::connectService()
+{
+	serviceInit();
+	uc->connectIpv4(this->serverIp.c_str(), this->serverPort);
+	return ;
+}
+
+void FSByTcp::setReadCallBack(int(*readCallBack)(char *, int))
+{
+	this->uc->setReadCallBack(readCallBack);
+}
+
+int FSByTcp::sendData(const char * buf, int len, int flags)
+{
+	return uc->sendData((void*)buf, len);
 }
 
 FSByWebSocket::FSByWebSocket(std::string serverIp, int serverPort)
@@ -42,28 +50,34 @@ FSByWebSocket::FSByWebSocket(std::string serverIp, int serverPort)
 
 FSByWebSocket::~FSByWebSocket()
 {
+	serviceDestroy();
 }
 
-int FSByWebSocket::startService()
+void FSByWebSocket::serviceInit()
 {
-	return 0;
+	this->wc = new wsClient();
+	return;
 }
 
-int FSByWebSocket::recvData(char ** buf, int * len, int flags)
+void FSByWebSocket::serviceDestroy()
 {
-	return 0;
+	if (wc)
+		delete wc;
+}
+
+void FSByWebSocket::connectService()
+{
+	serviceInit();
+	wc->connectIpv4(this->serverIp.c_str(), this->serverPort);
+	return;
+}
+
+void FSByWebSocket::setReadCallBack(int(*readCallBack)(char *, int))
+{
+	this->wc->setReadCallBack(readCallBack);
 }
 
 int FSByWebSocket::sendData(const char * buf, int len, int flags)
 {
 	return 0;
-}
-
-int FSByWebSocket::serviceInit()
-{
-	return 0;
-}
-
-void FSByWebSocket::serviceDestroy()
-{
 }

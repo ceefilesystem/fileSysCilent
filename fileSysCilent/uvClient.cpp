@@ -11,8 +11,11 @@ static void on_close_cb(uv_handle_t *);
 static void on_shutdown_cb(uv_shutdown_t *, int);
 static void on_alloc_cb(uv_handle_t*, size_t, uv_buf_t*);
 static void on_read_cb(uv_stream_t*, ssize_t, const uv_buf_t*);
+static void on_thread_cb(void*);
+static void on_connect_cb(uv_connect_t*, int);
 
-static void on_close_cb(uv_handle_t* peer) {
+static void on_close_cb(uv_handle_t* peer)
+{
 	free(peer);
 }
 
@@ -83,7 +86,7 @@ static void on_write_cb(uv_write_t* req, int status)
 		uv_err_name(status), uv_strerror(status));
 }
 
-void uvClient::on_connect_cb(uv_connect_t* conn, int status)
+void on_connect_cb(uv_connect_t* conn, int status)
 {
 	int r;
 	uvClient* uc = (uvClient*)(conn->data);
@@ -103,7 +106,7 @@ void uvClient::on_connect_cb(uv_connect_t* conn, int status)
 	return;
 }
 
-void uvClient::on_thread_cb(void * arg)
+void on_thread_cb(void * arg)
 {
 	uvClient* uc = nullptr;
 	if (arg)
@@ -143,19 +146,9 @@ void uvClient::setReadCallBack(readCallBack rCallBack)
 	this->rCallBack = rCallBack;
 }
 
-void uvClient::setWriteCallBack(writeCallBack wCallBack)
-{
-	this->wCallBack = wCallBack;
-}
-
 readCallBack uvClient::getReadCallBack()
 {
 	return this->rCallBack;
-}
-
-writeCallBack uvClient::getWriteCallBack()
-{
-	return this->wCallBack;
 }
 
 void uvClient::connectIpv4(const char* ip, int port)

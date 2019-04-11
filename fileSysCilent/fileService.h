@@ -3,11 +3,11 @@
 
 class fileService
 {
-	virtual int serviceInit() = 0;
+	virtual void serviceInit() = 0;
 	virtual void serviceDestroy() = 0;
 
-	virtual int connectService() = 0;
-	virtual int recvData(char **buf,  int *len, int flags) = 0;
+	virtual void connectService() = 0;
+	virtual void setReadCallBack(int(*readCallBack) (char*, int)) = 0;
 	virtual int sendData(const char* buf, int len, int flags) = 0;
 };
 
@@ -27,11 +27,12 @@ public:
 	FSByTcp(std::string serverIp, int serverPort);
 	virtual ~FSByTcp();
 
-	virtual int connectService();
-	virtual int recvData(char **buf, int *len, int flags);
-	virtual int sendData(const char* buf, int len, int flags);
+	virtual void connectService();
+	//处理接受到的数据
+	virtual void setReadCallBack(int(*readCallBack) (char*, int));
+	virtual int sendData(const char* buf, int len, int flags = 0);
 protected:
-	virtual int serviceInit();
+	virtual void serviceInit();
 	virtual void serviceDestroy();
 };
 
@@ -48,11 +49,12 @@ public:
 	FSByWebSocket(std::string serverIp, int serverPort);
 	virtual ~FSByWebSocket();
 
-	virtual int startService();
-	virtual int recvData(char **buf, int *len, int flags);
-	virtual int sendData(const char* buf, int len, int flags);
+	virtual void connectService();
+	//处理接受到的数据
+	virtual void setReadCallBack(int(*readCallBack) (char*, int));
+	virtual int sendData(const char* buf, int len, int flags = 0);
 protected:
-	virtual int serviceInit();
+	virtual void serviceInit();
 	virtual void serviceDestroy();
 };
 

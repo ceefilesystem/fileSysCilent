@@ -2,13 +2,16 @@
 #include "uvTask.h"
 
 typedef int(*readCallBack) (char* buf, int len);
-typedef int(*writeCallBack) (char* buf, int len);
 
 class uvClient
 {
+	friend static void on_thread_cb(void*);
+	friend static void on_connect_cb(uv_connect_t*, int);
+	friend static void on_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf);
+
 private:
 	readCallBack rCallBack;
-	writeCallBack wCallBack;
+	readCallBack getReadCallBack();
 
 private:
 	uv_loop_t* loop;
@@ -19,18 +22,11 @@ private:
 	const char* ip;
 	int port;
 
-	static void on_thread_cb(void*);
-	static void on_connect_cb(uv_connect_t*, int);
-
 public:
 	uvClient();
 	~uvClient();
 
 	void setReadCallBack(readCallBack rCallBack);
-	void setWriteCallBack(writeCallBack wCallBack);
-
-	readCallBack getReadCallBack();
-	writeCallBack getWriteCallBack();
 
 	void connectIpv4(const char* ip, int port);
 	int sendData(void* in, int len);
