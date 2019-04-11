@@ -81,3 +81,32 @@ int FSByWebSocket::sendData(const char * buf, int len, int flags)
 {
 	return 0;
 }
+
+void * initService(void * handle)
+{
+	fileService* fs= (fileService*)handle;
+	return fs;
+}
+
+void connectService(void * handle)
+{
+	fileService* fs = (fileService*)handle;
+	fs->connectService();
+}
+
+void setReadCallBack(void * handle, int(*readCallBack)(char *, int))
+{
+	fileService* fs = (fileService*)handle;
+	fs->setReadCallBack(readCallBack);
+}
+
+int sendData(void * handle, const char * buf, int len)
+{
+	fileService* fs = (fileService*)handle;
+	return fs->sendData(buf, len);
+}
+
+void deleteService(void * handle)
+{
+	delete (fileService*)handle;
+}

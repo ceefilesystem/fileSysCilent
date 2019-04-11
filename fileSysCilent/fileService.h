@@ -6,9 +6,12 @@ class fileService
 	virtual void serviceInit() = 0;
 	virtual void serviceDestroy() = 0;
 
+public:
+	fileService() {};
+	virtual ~fileService() {};
 	virtual void connectService() = 0;
 	virtual void setReadCallBack(int(*readCallBack) (char*, int)) = 0;
-	virtual int sendData(const char* buf, int len, int flags) = 0;
+	virtual int sendData(const char* buf, int len, int flags = 0) = 0;
 };
 
 class uvClient;
@@ -57,5 +60,11 @@ protected:
 	virtual void serviceInit();
 	virtual void serviceDestroy();
 };
+
+extern void* initService(void* handle);
+extern void connectService(void* handle);
+extern void setReadCallBack(void* handle, int(*readCallBack) (char*, int));
+extern int sendData(void* handle, const char* buf, int len);
+extern void deleteService(void* handle);
 
 

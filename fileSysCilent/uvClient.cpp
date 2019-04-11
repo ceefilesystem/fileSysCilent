@@ -11,6 +11,7 @@ static void on_close_cb(uv_handle_t *);
 static void on_shutdown_cb(uv_shutdown_t *, int);
 static void on_alloc_cb(uv_handle_t*, size_t, uv_buf_t*);
 static void on_read_cb(uv_stream_t*, ssize_t, const uv_buf_t*);
+static void on_write_cb(uv_write_t*, int);
 static void on_thread_cb(void*);
 static void on_connect_cb(uv_connect_t*, int);
 
@@ -33,18 +34,17 @@ static void on_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* bu
 
 static void on_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 {
-	int i;
 	uv_shutdown_t* sreq;
 
 	if (nread < 0) {
 		if (nread == UV_EOF) {
-			std::cout << "客户端主动断开\n";
+			std::cout << "服务器主动断开\n";
 		}
 		else if (nread == UV_ECONNRESET) {
-			std::cout << "客户端异常断开\n";
+			std::cout << "服务器异常断开\n";
 		}
 		else {
-			std::cout << "客户端)异常断开\n";
+			std::cout << "服务器异常断开\n";
 		}
 
 		free(buf->base);
@@ -63,7 +63,7 @@ static void on_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 
 		uvClient* uc = (uvClient*)(handle->data);
 		readCallBack callBacke = uc->getReadCallBack();
-		ret = callBacke(buf->base, buf->len);
+		ret = callBacke(buf->base, nread);
 	}
 
 	free(buf->base);
@@ -73,40 +73,35 @@ static void on_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 static void on_write_cb(uv_write_t* req, int status)
 {
 	write_req_t* wr;
-
 	/* Free the read/write buffer and the request */
 	wr = (write_req_t*)req;
-	free(wr->buf.base);
+	//free(wr->buf.base);
 	free(wr);
 
 	if (status == 0)
 		return;
 
-	fprintf(stderr, "uv_write error: %s - %s\n",
-		uv_err_name(status), uv_strerror(status));
+	throw (uv_strerror(status));
 }
 
-void on_connect_cb(uv_connect_t* conn, int status)
+static void on_connect_cb(uv_connect_t* conn, int status)
 {
-	int r;
-	uvClient* uc = (uvClient*)(conn->data);
+	if (status == 0) {
+		int r;
 
-	r = uv_tcp_init(uc->loop, &uc->tcpConn);
-	if (r) {
-		throw ("Socket creation error");
-		return;
+		r = uv_read_start(conn->handle, on_alloc_cb, on_read_cb);
+		if (r) {
+			throw std::exception(uv_strerror(r));
+			return;
+		}
+	}else {
+		throw std::exception(uv_strerror(status));
 	}
-
-	r = uv_read_start(conn->handle, on_alloc_cb, on_read_cb);
-	if (r) {
-		throw ("read error");
-		return;
-	}
-
+	
 	return;
 }
 
-void on_thread_cb(void * arg)
+static void on_thread_cb(void * arg)
 {
 	uvClient* uc = nullptr;
 	if (arg)
@@ -115,11 +110,11 @@ void on_thread_cb(void * arg)
 	struct sockaddr_in addr;
 	int r;
 
-	ASSERT(0 == uv_ip4_addr(uc->ip, uc->port, &addr));
+	r = uv_ip4_addr(uc->ip, uc->port, &addr);
+	ASSERT(r == 0);
 
 	r = uv_tcp_connect(&uc->connectReq, &uc->tcpConn, (const struct sockaddr*) &addr, on_connect_cb);
-	if (r == UV_ENETUNREACH)
-		throw ("Network unreachable.");
+	ASSERT(r == 0);
 
 	r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 	ASSERT(r == 0);
@@ -131,9 +126,7 @@ uvClient::uvClient()
 	this->loop = uv_default_loop();
 	const char* ip = nullptr;
 	this->connectReq.data = this;
-	this->connectReq.handle->data = this;
 }
-
 
 uvClient::~uvClient()
 {
@@ -157,25 +150,34 @@ void uvClient::connectIpv4(const char* ip, int port)
 	this->port = port;
 
 	int r;
-	r = uv_thread_create(&connectThr, on_thread_cb, this);
+	r = uv_tcp_init(loop, &tcpConn);
 	if (r) {
-		throw ("uv_thread_create() error");
+		throw std::exception("Socket creation error");
 		return;
 	}
+
+	tcpConn.data = this;
+	r = uv_thread_create(&connectThr, on_thread_cb, this);
+	if (r) {
+		throw std::exception("uv_thread_create() error");
+		return;
+	}
+	
+	Sleep(1000);
 }
 
 int uvClient::sendData(void * in, int len)
 {
 	write_req_t* wr = (write_req_t*)malloc(sizeof *wr);
-
 	ASSERT(wr != NULL);
-	wr->buf = uv_buf_init((char*)in, len);
 
-	if (uv_write(&wr->req, (uv_stream_t*)&tcpConn, 
-		&wr->buf, 1, on_write_cb)) {
-		throw ("uv_write failed");
+	wr->buf = uv_buf_init((char*)in, len == strlen((char*)in) + 1 ? len : strlen((char*)in) + 1);
+
+	int r = uv_write(&wr->req, (uv_stream_t*)&tcpConn, &wr->buf, 1, on_write_cb);
+	if (r) {
+		throw std::exception(uv_strerror(r));
 		return 1;
 	}
-
+	
 	return 0;
 }
