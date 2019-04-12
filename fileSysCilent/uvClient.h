@@ -29,6 +29,6 @@ public:
 	void setReadCallBack(readCallBack rCallBack);
 
 	void connectIpv4(const char* ip, int port);
-	int sendData(void* in, int len) throw(char*);
+	int sendData(void* in, int len);
 };
 

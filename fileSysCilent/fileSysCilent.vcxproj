@@ -126,6 +126,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="clientManage.h" />
     <ClInclude Include="fileService.h" />
     <ClInclude Include="uvClient.h" />
     <ClInclude Include="uvTask.h" />

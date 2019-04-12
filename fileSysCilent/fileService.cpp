@@ -82,9 +82,16 @@ int FSByWebSocket::sendData(const char * buf, int len, int flags)
 	return 0;
 }
 
-void * initService(void * handle)
+void * initService(ProtocolType type, const char* ip, int port)
 {
-	fileService* fs= (fileService*)handle;
+	fileService* fs = nullptr;
+	if (type == 0) {
+		fs = new FSByTcp(ip, port);
+	}
+	else if(type == 1) {
+		fs = new FSByWebSocket(ip, port);
+	}
+
 	return fs;
 }
 

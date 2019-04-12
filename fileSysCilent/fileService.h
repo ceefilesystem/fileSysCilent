@@ -61,7 +61,8 @@ protected:
 	virtual void serviceDestroy();
 };
 
-extern void* initService(void* handle);
+enum ProtocolType;
+extern void* initService(ProtocolType type, const char* ip, int port);
 extern void connectService(void* handle);
 extern void setReadCallBack(void* handle, int(*readCallBack) (char*, int));
 extern int sendData(void* handle, const char* buf, int len);

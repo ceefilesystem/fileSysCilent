@@ -17,13 +17,15 @@ static void on_connect_cb(uv_connect_t*, int);
 
 static void on_close_cb(uv_handle_t* peer)
 {
-	free(peer);
+	return;
 }
 
 static void on_shutdown_cb(uv_shutdown_t* req, int status)
 {
-	uv_close((uv_handle_t*)req->handle, on_close_cb);
-	free(req);
+	if (req->handle) {
+		uv_close((uv_handle_t*)req->handle, on_close_cb);
+		free(req);
+	}
 }
 
 static void on_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
@@ -72,16 +74,13 @@ static void on_read_cb(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf)
 
 static void on_write_cb(uv_write_t* req, int status)
 {
-	write_req_t* wr;
-	/* Free the read/write buffer and the request */
-	wr = (write_req_t*)req;
-	//free(wr->buf.base);
-	free(wr);
+	free(req);
+	req = nullptr;
 
 	if (status == 0)
 		return;
 
-	throw (uv_strerror(status));
+	throw std::exception(uv_strerror(status));
 }
 
 static void on_connect_cb(uv_connect_t* conn, int status)
@@ -168,16 +167,18 @@ void uvClient::connectIpv4(const char* ip, int port)
 
 int uvClient::sendData(void * in, int len)
 {
-	write_req_t* wr = (write_req_t*)malloc(sizeof *wr);
-	ASSERT(wr != NULL);
+	uv_write_t* wreq;
+	uv_buf_t buf;
 
-	wr->buf = uv_buf_init((char*)in, len == strlen((char*)in) + 1 ? len : strlen((char*)in) + 1);
+	wreq = (uv_write_t*)malloc(sizeof *wreq);
+	ASSERT(wreq != NULL);
 
-	int r = uv_write(&wr->req, (uv_stream_t*)&tcpConn, &wr->buf, 1, on_write_cb);
+	buf = uv_buf_init((char*)in, len == strlen((char*)in) + 1 ? len : strlen((char*)in) + 1);
+	int r = uv_write(wreq, (uv_stream_t*)&tcpConn, &buf, 1, on_write_cb);
 	if (r) {
 		throw std::exception(uv_strerror(r));
 		return 1;
 	}
-	
+
 	return 0;
 }
