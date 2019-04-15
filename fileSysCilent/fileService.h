@@ -40,26 +40,26 @@ protected:
 };
 
 //////////////////////////websocket //////////////////////////
-class FSByWebSocket : public fileService
-{
-private:
-	std::string serverIp;
-	int serverPort;
-
-	wsClient* wc;
-
-public:
-	FSByWebSocket(std::string serverIp, int serverPort);
-	virtual ~FSByWebSocket();
-
-	virtual void connectService();
-	//处理接受到的数据
-	virtual void setReadCallBack(int(*readCallBack) (char*, int));
-	virtual int sendData(const char* buf, int len, int flags = 0);
-protected:
-	virtual void serviceInit();
-	virtual void serviceDestroy();
-};
+//class FSByWebSocket : public fileService
+//{
+//private:
+//	std::string serverIp;
+//	int serverPort;
+//
+//	wsClient* wc;
+//
+//public:
+//	FSByWebSocket(std::string serverIp, int serverPort);
+//	virtual ~FSByWebSocket();
+//
+//	virtual void connectService();
+//	//处理接受到的数据
+//	virtual void setReadCallBack(int(*readCallBack) (char*, int));
+//	virtual int sendData(const char* buf, int len, int flags = 0);
+//protected:
+//	virtual void serviceInit();
+//	virtual void serviceDestroy();
+//};
 
 enum ProtocolType;
 extern void* initService(ProtocolType type, const char* ip, int port);
